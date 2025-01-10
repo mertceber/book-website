@@ -20,7 +20,6 @@ export class NewBookComponent implements OnInit {
 
   ngOnInit() {
     this.addBookForm = this.fb.group({
-      id: [Math.floor(Math.random() * 1000)],
       title: [null, Validators.required],
       author: [null, Validators.required],
       description: [

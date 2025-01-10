@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SUMMARIES.Data;
 
-namespace Angular_and_ASP.NET_Core_Sample_App
+namespace Book_Website
 {
     public class Startup
     {
