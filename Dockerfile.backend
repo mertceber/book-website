@@ -1,0 +1,28 @@
+# .NET SDK imajını kullanarak uygulamayı build et ve EF komutlarını çalıştır
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["book-website.csproj", "./"]
+RUN dotnet restore "book-website.csproj"
+COPY . .
+RUN dotnet build "book-website.csproj" -c Release -o /app/build
+
+# EF komutlarını çalıştırmak ve .NET uygulamasını publish etmek için SDK'yı kullan
+FROM build AS publish
+RUN dotnet publish "book-website.csproj" -c Release -o /app/publish
+
+# EF komutlarını çalıştır
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS ef
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Veritabanı migrasyonunu çalıştır
+RUN apt-get update && apt-get install -y curl \
+    && until curl -s http://db:1433/ > /dev/null; do echo "Waiting for SQL Server..."; sleep 5; done
+RUN dotnet ef database update
+
+# Final olarak, ASP.NET runtime imajında uygulamayı çalıştır
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+EXPOSE 80
+ENTRYPOINT ["dotnet", "book-website.dll"]
